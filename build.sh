@@ -39,7 +39,7 @@ clean() {
 }
 
 qemu_i686() {
-	qemu -kernel ./i686/kernel/kernel -initrd ./initramfs.gz
+	qemu -kernel ./i686/kernel/kernel -initrd ./initramfs.gz -append "ifmod=ne2k-pci ip=10.0.0.2 server=192.168.1.23:/storage/bla"
 }
 
 extract_initramfs() {
