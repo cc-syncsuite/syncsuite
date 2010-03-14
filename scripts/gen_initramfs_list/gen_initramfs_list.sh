@@ -281,20 +281,20 @@ done
 
 # If output_file is set we will generate cpio archive and compress it
 # we are carefull to delete tmp files
-if [ ! -z ${output_file} ]; then
-	if [ -z ${cpio_file} ]; then
-		cpio_tfile="$(mktemp ${TMPDIR:-/tmp}/cpiofile.XXXXXX)"
-		../gen_init_cpio/gen_init_cpio ${cpio_list} > ${cpio_tfile}
-	else
-		cpio_tfile=${cpio_file}
-	fi
-	rm ${cpio_list}
-	if [ "${is_cpio_compressed}" = "compressed" ]; then
-		cat ${cpio_tfile} > ${output_file}
-	else
-		(cat ${cpio_tfile} | ${compr}  - > ${output_file}) \
-		|| (rm -f ${output_file} ; false)
-	fi
-	[ -z ${cpio_file} ] && rm ${cpio_tfile}
-fi
+#if [ ! -z ${output_file} ]; then
+#	if [ -z ${cpio_file} ]; then
+#		cpio_tfile="$(mktemp ${TMPDIR:-/tmp}/cpiofile.XXXXXX)"
+#		../gen_init_cpio/gen_init_cpio ${cpio_list} > ${cpio_tfile}
+#	else
+#		cpio_tfile=${cpio_file}
+#	fi
+#	rm ${cpio_list}
+#	if [ "${is_cpio_compressed}" = "compressed" ]; then
+#		cat ${cpio_tfile} > ${output_file}
+#	else
+#		(cat ${cpio_tfile} | ${compr}  - > ${output_file}) \
+#		|| (rm -f ${output_file} ; false)
+#	fi
+#	[ -z ${cpio_file} ] && rm ${cpio_tfile}
+#fi
 exit 0
