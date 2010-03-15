@@ -30,6 +30,12 @@ build_i686() {
 	build_cpio
 }
 
+install_i686() {
+	DEST=/mnt/floppy
+	cp ./i686/kernel/kernel ${DEST}/vmlinuz
+	cp initramfs.gz ${DEST}
+}
+
 clean() {
 	recursive_build_call ./scripts/gen_cpio clean
 	rm cpiolist &>/dev/null

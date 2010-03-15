@@ -15,6 +15,7 @@ shell() {
 	echo "HOOKS   = \"${HOOKS}\""
 	echo "IF      = \"${IF}\""
 	echo "MAC     = \"${MAC}\""
+	echo "MODULES = \"${MODULES}\""
 	echo ""
 	echo "You are being dropped to a shell"
 	echo "Continue booting by typing \"exit\""
@@ -35,7 +36,7 @@ error_msg() {
 }
 
 error_process() {
-	echo "FAILED!"
+	echo "$@"
 	shell
 }
 
@@ -73,8 +74,8 @@ parse() {
 			ip=*)
 				IP=${PARAM#ip=}
 				;;
-			ifmod=*) 
-				MOD=${PARAM#ifmod=}
+			modules=*) 
+				MODULES=${PARAM#modules=}
 				;;
 		esac
 	done
@@ -82,18 +83,24 @@ parse() {
 
 obtain_mac() {
 	if [ -z "${MAC}" ] ; then
-		MAC=$(ifconfig ${IF} | head -n1 | grep -Eo "[0-9][:a-f0-9]+")
+		MAC=$(cat /sys/class/net/${IF}/address)
 	fi
 }
 
+load_modules() {
+	for mod in $(echo ${MODULES} | sed -r 's/,/ /g'); do
+		modprobe $mod || error_process "could not load $mod"
+	done
+}
+
 config_network() {
-	modprobe ${MOD} || return 1
-	obtain_mac 
-	ifconfig ${IF} ${IP} || return 1
+	obtain_mac || return 1
+	ifconfig lo up
+	ifconfig ${IF} ${IP} || error_process "setting ip failed"
 }
 
 load_config(){
-	rsync -vvrae dbclient ${SERVER}/configs/${MAC}/config /tmp 
+	rsync -vvra ${SERVER}/configs/${MAC}/config /tmp || "getting config failed"
 }
 
 check_environment() {
@@ -116,16 +123,6 @@ check_environment() {
 		echo "and pass ip=xxx.xxx.xxx.xxx"
 		return 1
 	fi
-
-	if [ -z "${MOD}" ] ; then
-		error_msg  "No ethernet module specified"
-		echo "No module for the ethernet card was specified."
-		echo "Can't access the network."
-		echo "Please edit the local grub.conf (or menu.lst)"
-		echo "or hit [e] at the bootloader's screen"
-		echo "and pass ifmod=modulename"
-		return 1
-	fi
 }
 
 hang() {
@@ -146,11 +143,11 @@ msg "Setting up presync environment"
 /bin/busybox mount -t proc none /proc || error "Mounting procfs"
 /bin/busybox mount -t sysfs none /sys || error "Mounting sysfs"
 start_process "Creating devices"
-/bin/busybox mdev -s  || error_process 
+/bin/busybox mdev -s  || error_process "failed"
 end_process
 
 start_process "Populating /bin"
-/bin/busybox --install || error_process
+/bin/busybox --install || error_process "failed"
 end_process
 
 start_process "Parsing commandline"
@@ -160,19 +157,24 @@ end_process
 break_on_hook "early"
 
 start_process "Sanitizing"
-check_environment || shell
+check_environment || error_process
+end_process
+
+break_on_hook "modules"
+
+load_modules || error_process
 end_process
 
 break_on_hook "network"
 
 start_process "Configuring network"
-config_network
+config_network || error_process
 end_process
 
 break_on_hook "config"
 
 start_process "Loading configuration"
-load_config
+load_config || error_process
 end_process
 
 hang
