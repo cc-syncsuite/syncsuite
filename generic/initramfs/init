@@ -2,6 +2,7 @@
 
 PATH=/bin:/sbin
 IF=eth0
+RSYNC_PARM="-vvra --specials --devices --progress -I"
 
 msg() {
 	echo "[*] $@"
@@ -119,11 +120,11 @@ boot() {
 }
 
 sync_basesystem() {
-	rsync -vvra --delete rsync://${SERVER}/basesystems/${BASESYSTEM}/ /root
+	rsync ${RSYNC_PARM} --delete rsync://${SERVER}/basesystems/${BASESYSTEM}/ /root
 }
 
 sync_overlay() {
-	rsync -vvra rsync://${SERVER}/overlays/${MAC}/ /root
+	rsync ${RSYNC_PARM} rsync://${SERVER}/overlays/${MAC}/ /root
 }
 
 check_environment() {
@@ -167,7 +168,7 @@ msg "Setting up presync environment"
 /bin/busybox mount -t sysfs none /sys || error "Mounting sysfs"
 start_process "Creating devices"
 /bin/busybox mdev -s  || error_process "failed"
-echo /bin/mdev > /proc/sys/kernel/hotplug
+echo /sbin/mdev > /proc/sys/kernel/hotplug
 end_process
 
 start_process "Populating /bin"
