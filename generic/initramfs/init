@@ -219,6 +219,6 @@ end_process
 break_on_hook "boot"
 
 start_process "Booting system"
-switch_root /root /sbin/init ${CMDLINE} 
+exec switch_root /root /sbin/init ${CMDLINE} 
 
 hang
