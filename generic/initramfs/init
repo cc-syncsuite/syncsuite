@@ -116,7 +116,7 @@ mountroot() {
 }
 
 boot() {
-	exec switch_root /root /sbin/init ${CMDLINE} || error_process "switch_root failed"
+
 }
 
 sync_basesystem() {
@@ -216,12 +216,12 @@ break_on_hook "sync"
 
 start_process "Syncing"
 sync_basesystem || error_process "failed"
-snyc_overlay || error_process "failed"
+sync_overlay || error_process "failed"
 end_process
 
 break_on_hook "boot"
 
 start_process "Booting system"
-boot || error_process
+switch_root /root /sbin/init ${CMDLINE} 
 
 hang
