@@ -119,11 +119,11 @@ boot() {
 }
 
 sync_basesystem() {
-	rsync -vvra --delete rsync://${SERVER}/basesystem/${BASESYSTEM}/ /root
+	rsync -vvra --delete rsync://${SERVER}/basesystems/${BASESYSTEM}/ /root
 }
 
 sync_overlay() {
-	rsync -vvra rsync://${SERVER}/overlay/${MAC}/ /root
+	rsync -vvra rsync://${SERVER}/overlays/${MAC}/ /root
 }
 
 check_environment() {
@@ -205,14 +205,20 @@ start_process "Loading configuration"
 load_config || error_process
 end_process
 
+break_on_hook "mount"
+
 start_process "Mounting hard disk"
 mountroot || error_process "failed"
 end_process
+
+break_on_hook "sync"
 
 start_process "Syncing"
 sync_basesystem || error_process "failed"
 snyc_overlay || error_process "failed"
 end_process
+
+break_on_hook "boot"
 
 start_process "Booting system"
 boot || error_process
