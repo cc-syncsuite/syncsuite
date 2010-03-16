@@ -20,7 +20,14 @@ build_cpio() {
 }
 
 build() {
-	build_i686
+	build_amd64
+}
+
+build_amd64() {
+	build_dep
+	build_generic_cpiolist
+	./scripts/gen_initramfs_list/gen_initramfs_list.sh $(pwd)/amd64/initramfs >> cpiolist
+	build_cpio
 }
 
 build_i686() {
@@ -28,6 +35,12 @@ build_i686() {
 	build_generic_cpiolist
 	./scripts/gen_initramfs_list/gen_initramfs_list.sh $(pwd)/i686/initramfs >> cpiolist
 	build_cpio
+}
+
+install_i686() {
+	DEST=/mnt/floppy
+	cp ./amd64/kernel/kernel ${DEST}/vmlinuz
+	cp initramfs.gz ${DEST}
 }
 
 install_i686() {
