@@ -2,7 +2,7 @@
 
 PATH=/bin:/sbin
 IF=eth0
-RSYNC_PARM="-vvra --specials --devices --progress -I"
+RSYNC_PARM="-vvxra --specials --devices --progress -I"
 
 msg() {
 	echo "[*] $@"
@@ -19,6 +19,8 @@ shell() {
 	echo "MODULES    = \"${MODULES}\""
 	echo "BASESYSTEM = \"${BASESYSTEM}\""
 	echo "SWAPSIZE   = \"${SWAPSIZE}\""
+	echo "RSYNC      = \"${RSYNC_PARM} ${RSYNC_EXTRA}\""
+	echo "RESUME     = \"${RESUME}\""
 	echo ""
 	echo "You are being dropped to a shell"
 	echo "Continue booting by typing \"exit\""
@@ -83,6 +85,12 @@ parse() {
 			root=*)
 				ROOT=${PARAM#root=}
 				;;
+			rsync_extra=*)
+				RSYNC_EXTRA=${PARAM#rsync_extra=}
+				;;
+			resume=*)
+				RESUME=${PARAM#resume=}
+				;;
 		esac
 	done
 }
@@ -115,13 +123,22 @@ mountroot() {
 	mount -t ext3 ${ROOT} /root || return 1
 }
 
+resume() {
+	error_msg "Resume not implemented, yet"
+}
 
 sync_basesystem() {
-	rsync ${RSYNC_PARM} --delete rsync://${SERVER}/basesystems/${BASESYSTEM}/ /root
+	rsync ${RSYNC_PARM} ${RSYNC_EXTRA} --delete rsync://${SERVER}/basesystems/${BASESYSTEM}/ /root
 }
 
 sync_overlay() {
-	rsync ${RSYNC_PARM} rsync://${SERVER}/overlays/${MAC}/ /root
+	rsync ${RSYNC_PARM} ${RSYNC_EXTRA} rsync://${SERVER}/overlays/${MAC}/ /root
+}
+
+create_devices() {
+	mknod /dev/console c 5 1
+	mknod /dev/zero c 1 3
+	mknod /dev/null c 1 5
 }
 
 check_environment() {
@@ -176,6 +193,12 @@ start_process "Parsing commandline"
 parse || error_process
 end_process
 
+break_on_hook "resume"
+
+start_process "Checking for resume"
+resume || error_process "not found"
+end_process
+
 break_on_hook "early"
 
 start_process "Sanitizing"
@@ -213,12 +236,17 @@ break_on_hook "sync"
 
 start_process "Syncing"
 sync_basesystem || error_process "failed"
+break_on_hook "sync2"
 sync_overlay || error_process "failed"
+end_process
+
+start_process "Sanitizing image"
+create_devices
 end_process
 
 break_on_hook "boot"
 
 start_process "Booting system"
-exec switch_root /root /sbin/init ${CMDLINE} 
+exec switch_root /root /sbin/init ${CMDLINE}
 
 hang
