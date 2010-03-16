@@ -10,12 +10,14 @@ msg() {
 shell() {
 	echo ""
 	echo "Values:"
-	echo "CMDLINE = \"${CMDLINE}\""
-	echo "SERVER  = \"${SERVER}\""
-	echo "HOOKS   = \"${HOOKS}\""
-	echo "IF      = \"${IF}\""
-	echo "MAC     = \"${MAC}\""
-	echo "MODULES = \"${MODULES}\""
+	echo "CMDLINE    = \"${CMDLINE}\""
+	echo "SERVER     = \"${SERVER}\""
+	echo "HOOKS      = \"${HOOKS}\""
+	echo "IF         = \"${IF}\""
+	echo "MAC        = \"${MAC}\""
+	echo "MODULES    = \"${MODULES}\""
+	echo "BASESYSTEM = \"${BASESYSTEM}\""
+	echo "SWAPSIZE   = \"${SWAPSIZE}\""
 	echo ""
 	echo "You are being dropped to a shell"
 	echo "Continue booting by typing \"exit\""
@@ -100,7 +102,9 @@ config_network() {
 }
 
 load_config(){
-	rsync -vvra ${SERVER}/configs/${MAC}/config /tmp || "getting config failed"
+	rsync -vvra rsync://${SERVER}/configs/${MAC}/config /tmp || error_procces "getting config failed"
+	BASESYSTEM=$(cat /tmp/config | head -n1 | tail -n1)
+	SWAPSIZE=$(cat /tmp/config | head -n2 | tail -n1)
 }
 
 check_environment() {
