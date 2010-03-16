@@ -79,6 +79,9 @@ parse() {
 			modules=*) 
 				MODULES=${PARAM#modules=}
 				;;
+			root=*)
+				ROOT=${PARAM#root=}
+				;;
 		esac
 	done
 }
@@ -105,6 +108,11 @@ load_config(){
 	rsync -vvra rsync://${SERVER}/configs/${MAC}/config /tmp || error_procces "getting config failed"
 	BASESYSTEM=$(cat /tmp/config | head -n1 | tail -n1)
 	SWAPSIZE=$(cat /tmp/config | head -n2 | tail -n1)
+}
+
+boot() {
+	mount ${ROOT} /root
+	switch_root /root /sbin/init ${CMDLINE}
 }
 
 check_environment() {
@@ -180,5 +188,8 @@ break_on_hook "config"
 start_process "Loading configuration"
 load_config || error_process
 end_process
+
+start_process "Booting system"
+boot
 
 hang

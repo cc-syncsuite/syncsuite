@@ -28,6 +28,7 @@ build_amd64() {
 	build_generic_cpiolist
 	./scripts/gen_initramfs_list/gen_initramfs_list.sh $(pwd)/amd64/initramfs >> cpiolist
 	build_cpio
+	cp ./amd64/kernel/kernel vmlinuz
 }
 
 build_i686() {
@@ -35,18 +36,13 @@ build_i686() {
 	build_generic_cpiolist
 	./scripts/gen_initramfs_list/gen_initramfs_list.sh $(pwd)/i686/initramfs >> cpiolist
 	build_cpio
+	cp ./i686/kernel/kernel vmlinuz
 }
 
-install_i686() {
-	DEST=/mnt/floppy
-	cp ./amd64/kernel/kernel ${DEST}/vmlinuz
-	cp initramfs.gz ${DEST}
-}
 
-install_i686() {
+install() {
 	DEST=/mnt/floppy
-	cp ./i686/kernel/kernel ${DEST}/vmlinuz
-	cp initramfs.gz ${DEST}
+	cp vmlinuz initramfs.gz ${DEST}
 }
 
 clean() {
@@ -54,6 +50,7 @@ clean() {
 	rm cpiolist &>/dev/null
 	rm initramfs &>/dev/null
 	rm initramfs.gz &>/dev/null
+	rm vmlinuz &>/dev/null
 	rm -rf initramfs.d &>/dev/null
 }
 
