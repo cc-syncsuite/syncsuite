@@ -88,7 +88,7 @@ parse() {
 
 obtain_mac() {
 	if [ -z "${MAC}" ] ; then
-		MAC=$(cat /sys/class/net/${IF}/address)
+		MAC=$(cat /sys/class/net/${IF}/address | sed 's/://g')
 	fi
 }
 
@@ -105,14 +105,14 @@ config_network() {
 }
 
 load_config(){
-	rsync -vvra rsync://${SERVER}/configs/${MAC}/config /tmp || error_procces "getting config failed"
+	rsync -vvra rsync://${SERVER}/configs/${MAC}/config /tmp || error_proces "getting config failed"
 	BASESYSTEM=$(cat /tmp/config | head -n1 | tail -n1)
 	SWAPSIZE=$(cat /tmp/config | head -n2 | tail -n1)
 }
 
 boot() {
-	mount ${ROOT} /root
-	switch_root /root /sbin/init ${CMDLINE}
+	mount -t ext3 ${ROOT} /root || error_process "mounting filesystem failed"
+	exec switch_root /root /sbin/init ${CMDLINE} || error_process "switch_root failed"
 }
 
 check_environment() {
@@ -175,6 +175,14 @@ end_process
 break_on_hook "modules"
 
 load_modules || error_process
+end_process
+
+start_process "Sleeping for modules"
+sleep 5
+end_process
+
+start_process "Creating devices"
+/bin/busybox mdev -s  || error_process "failed"
 end_process
 
 break_on_hook "network"
