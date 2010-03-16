@@ -156,6 +156,7 @@ msg "Setting up presync environment"
 /bin/busybox mount -t sysfs none /sys || error "Mounting sysfs"
 start_process "Creating devices"
 /bin/busybox mdev -s  || error_process "failed"
+echo /bin/mdev > /proc/sys/kernel/hotplug
 end_process
 
 start_process "Populating /bin"
@@ -179,10 +180,6 @@ end_process
 
 start_process "Sleeping for modules"
 sleep 5
-end_process
-
-start_process "Creating devices"
-/bin/busybox mdev -s  || error_process "failed"
 end_process
 
 break_on_hook "network"
