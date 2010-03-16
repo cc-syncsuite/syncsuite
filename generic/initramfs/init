@@ -115,9 +115,6 @@ mountroot() {
 	mount -t ext3 ${ROOT} /root || return 1
 }
 
-boot() {
-
-}
 
 sync_basesystem() {
 	rsync ${RSYNC_PARM} --delete rsync://${SERVER}/basesystems/${BASESYSTEM}/ /root
