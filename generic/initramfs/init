@@ -124,7 +124,7 @@ mountroot() {
 }
 
 resume() {
-	error_msg "Resume not implemented, yet"
+	echo ${RESUME} > /sys/power/resume
 }
 
 sync_basesystem() {
