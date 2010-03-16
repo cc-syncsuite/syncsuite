@@ -110,9 +110,20 @@ load_config(){
 	SWAPSIZE=$(cat /tmp/config | head -n2 | tail -n1)
 }
 
+mountroot() {
+	mount -t ext3 ${ROOT} /root || return 1
+}
+
 boot() {
-	mount -t ext3 ${ROOT} /root || error_process "mounting filesystem failed"
 	exec switch_root /root /sbin/init ${CMDLINE} || error_process "switch_root failed"
+}
+
+sync_basesystem() {
+	rsync -vvra --delete rsync://${SERVER}/basesystem/${BASESYSTEM}/ /root
+}
+
+sync_overlay() {
+	rsync -vvra rsync://${SERVER}/overlay/${MAC}/ /root
 }
 
 check_environment() {
@@ -194,7 +205,16 @@ start_process "Loading configuration"
 load_config || error_process
 end_process
 
+start_process "Mounting hard disk"
+mountroot || error_process "failed"
+end_process
+
+start_process "Syncing"
+sync_basesystem || error_process "failed"
+snyc_overlay || error_process "failed"
+end_process
+
 start_process "Booting system"
-boot
+boot || error_process
 
 hang
