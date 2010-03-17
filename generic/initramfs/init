@@ -193,11 +193,6 @@ start_process "Parsing commandline"
 parse || error_process
 end_process
 
-break_on_hook "resume"
-
-start_process "Checking for resume"
-resume || error_process "not found"
-end_process
 
 break_on_hook "early"
 
@@ -212,6 +207,12 @@ end_process
 
 start_process "Sleeping for modules"
 sleep 5
+end_process
+
+break_on_hook "resume"
+
+start_process "Checking for resume"
+resume || error_process "not found"
 end_process
 
 break_on_hook "network"
