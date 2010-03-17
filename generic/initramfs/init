@@ -2,7 +2,7 @@
 
 PATH=/bin:/sbin
 IF=eth0
-RSYNC_PARM="-vvxra --specials --devices --progress -I"
+RSYNC_PARM="-vvxra --specials --devices --progress -c"
 
 msg() {
 	echo "[*] $@"
