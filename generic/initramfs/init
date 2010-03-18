@@ -42,7 +42,7 @@ error_msg() {
 
 error_process() {
 	echo "$@"
-	shell
+	reboot -f
 }
 
 error() {
@@ -114,7 +114,7 @@ config_network() {
 }
 
 load_config(){
-	rsync -vvra rsync://${SERVER}/configs/${MAC}/config /tmp || error_proces "getting config failed"
+	rsync -vvra rsync://${SERVER}/configs/${MAC}/config /tmp || error_process "getting config failed"
 	BASESYSTEM=$(cat /tmp/config | head -n1 | tail -n1)
 	SWAPSIZE=$(cat /tmp/config | head -n2 | tail -n1)
 }
@@ -219,6 +219,7 @@ break_on_hook "network"
 
 start_process "Configuring network"
 config_network || error_process
+ping -c1 127.0.0.1 || error_process
 end_process
 
 break_on_hook "config"
