@@ -103,7 +103,7 @@ obtain_mac() {
 
 load_modules() {
 	for mod in $(echo ${MODULES} | sed -r 's/,/ /g'); do
-		modprobe $mod || error_process "could not load $mod"
+		modprobe -f $mod || error_process "could not load $mod"
 	done
 }
 
@@ -219,7 +219,6 @@ break_on_hook "network"
 
 start_process "Configuring network"
 config_network || error_process
-ping -c1 127.0.0.1 || error_process
 end_process
 
 break_on_hook "config"
