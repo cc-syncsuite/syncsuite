@@ -13,6 +13,7 @@ shell() {
 	echo "Values:"
 	echo "CMDLINE    = \"${CMDLINE}\""
 	echo "SERVER     = \"${SERVER}\""
+	echo "SERVERMAC  = \"${SERVERMAC}\""
 	echo "HOOKS      = \"${HOOKS}\""
 	echo "IF         = \"${IF}\""
 	echo "MAC        = \"${MAC}\""
@@ -67,6 +68,10 @@ parse() {
 		case ${PARAM} in
 			server=*)
 				SERVER=${PARAM#server=}
+				SERVERIP=$(echo $SERVER | cut -d: -f1)
+				;;
+			servermac=*)
+				SERVERMAC=${PARAM#servermac=}
 				;;
 			hooks=*)
 				HOOKS=${PARAM#hooks=}
@@ -105,7 +110,7 @@ obtain_mac() {
 load_modules() {
 	/sbin/depmod -a || error_process "could not depmod"
 	for mod in $(echo ${MODULES} | sed -r 's/,/ /g'); do
-		/sbin/modprobe -f $mod || error_process "could not load $mod"
+		/sbin/modprobe -f $mod || error_msg "could not load $mod"
 	done
 }
 
@@ -113,6 +118,9 @@ config_network() {
 	obtain_mac || return 1
 	ifconfig lo up
 	ifconfig ${IF} ${IP} || error_process "setting ip failed"
+	if [ -n "${SERVERMAC}" ] ; then
+		arp -s ${SERVERIP} ${SERVERMAC} || error_msg "Could not set static MAC entry"
+	fi
 }
 
 load_config(){
@@ -222,6 +230,7 @@ break_on_hook "network"
 start_process "Configuring network"
 config_network || error_process
 end_process
+
 
 break_on_hook "config"
 
